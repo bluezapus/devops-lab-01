@@ -1,15 +1,28 @@
 package com.bluezapus.petclinic.customers.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.bluezapus.petclinic.customers.model.Customer;
+import com.bluezapus.petclinic.customers.repository.CustomerRepository;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
 
+    private final CustomerRepository repository;
+
+    public CustomerController(CustomerRepository repository) {
+        this.repository = repository;
+    }
+
     @GetMapping
-    public String getCustomers() {
-        return "Customers service is running";
+    public List<Customer> getCustomers() {
+        return repository.findAll();
+    }
+
+    @PostMapping
+    public Customer createCustomer(@RequestBody Customer customer) {
+        return repository.save(customer);
     }
 }
