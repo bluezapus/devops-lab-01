@@ -1,39 +1,66 @@
 name: Customers Service CI
 
 on:
-  push:
-    branches:
-      - main
-      - feature/**
-    paths:
-      - "services/customers-service/**"
-      - ".github/workflows/ci.yaml"
+push:
+branches:
+- main
+- feature/**
+paths:
+- "services/customers-service/**"
+- ".github/workflows/ci.yaml"
 
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "services/customers-service/**"
-      - ".github/workflows/ci.yaml"
+pull_request:
+branches:
+- main
+paths:
+- "services/customers-service/**"
+- ".github/workflows/ci.yaml"
+
+permissions:
+contents: read
+packages: write
+
+env:
+REGISTRY: ghcr.io
+IMAGE_NAME: ghcr.io/bluezapus/customers-service
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build-and-push:
+runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: services/customers-service
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+defaults:
+  run:
+    working-directory: services/customers-service
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: maven
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
 
-      - name: Build application
-        run: ./mvnw --batch-mode clean package -Dmaven.test.skip=true
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: "21"
+      cache: maven
+
+  - name: Build application
+    run: ./mvnw --batch-mode clean package -Dmaven.test.skip=true
+
+  - name: Log in to GHCR
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: docker/login-action@v3
+    with:
+      registry: ghcr.io
+      username: ${{ github.actor }}
+      password: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Build and push Docker image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: docker/build-push-action@v6
+    with:
+      context: ./services/customers-service
+      push: true
+      tags: |
+        ghcr.io/bluezapus/customers-service:latest
+        ghcr.io/bluezapus/customers-service:${{ github.sha }}
