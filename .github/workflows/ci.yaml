@@ -4,34 +4,25 @@ on:
 push:
 branches:
 - main
-- feature/**
+- 'feature/**'
 paths:
-- "services/customers-service/**"
-- ".github/workflows/ci.yaml"
-
+- 'services/customers-service/**'
+- '.github/workflows/ci.yaml'
 pull_request:
 branches:
 - main
 paths:
-- "services/customers-service/**"
-- ".github/workflows/ci.yaml"
+- 'services/customers-service/**'
+- '.github/workflows/ci.yaml'
 
 permissions:
 contents: read
 packages: write
 
-env:
-REGISTRY: ghcr.io
-IMAGE_NAME: ghcr.io/bluezapus/customers-service
-
 jobs:
 build-and-push:
 runs-on: ubuntu-latest
 
-
-defaults:
-  run:
-    working-directory: services/customers-service
 
 steps:
   - name: Checkout repository
@@ -41,10 +32,11 @@ steps:
     uses: actions/setup-java@v4
     with:
       distribution: temurin
-      java-version: "21"
+      java-version: '21'
       cache: maven
 
   - name: Build application
+    working-directory: services/customers-service
     run: ./mvnw --batch-mode clean package -Dmaven.test.skip=true
 
   - name: Log in to GHCR
