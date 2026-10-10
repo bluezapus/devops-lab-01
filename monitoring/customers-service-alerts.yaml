@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: customers-service-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: customers-service
+      rules:
+        - alert: CustomersServiceTargetMissing
+          expr: absent(up{namespace="default", service="customers-service-gitops"})
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Customers service target is missing"
+            description: "Prometheus has not discovered the customers-service target for at least 2 minutes."
+
+        - alert: CustomersServiceTargetDown
+          expr: up{namespace="default", service="customers-service-gitops"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Customers service target is down"
+            description: "Prometheus cannot scrape the customers-service target."
+
+        - alert: CustomersServiceHttp5xx
+          expr: sum(rate(http_server_requests_seconds_count{namespace="default", service="customers-service-gitops", status=~"5.."}[5m])) > 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Customers service is returning HTTP 5xx"
+            description: "The customers-service has recorded HTTP 5xx responses during the last 5 minutes."
