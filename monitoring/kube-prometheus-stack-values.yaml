@@ -1,0 +1,14 @@
+grafana:
+  enabled: true
+  persistence:
+    enabled: false
+  service:
+    type: ClusterIP
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 3d
+
+alertmanager:
+  enabled: false
